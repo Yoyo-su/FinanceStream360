@@ -34,7 +34,19 @@ Resources:
       # Events:
         # implement trigger
       Role: !GetAtt FinConnFuncRole.Arn
-
+  WebSocketLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      LayerName: WebSocketLayer
+      Description: My websocket Layer
+      Content:
+        S3Bucket: fin360-bucket-ss25
+        S3Key: websocket_layer.zip
+      CompatibleRuntimes:
+        - python3.9
+        - python3.10
+        - python3.11
+        - python3.13
 # IAM Role for Lambda Function
   FinConnFuncRole:
       Type: AWS::IAM::Role
