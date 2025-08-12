@@ -1,0 +1,4 @@
+dotenv
+websocket
+websocket-client
+boto3
