@@ -10,19 +10,42 @@ Description: FinanceStream360 data pipeline infrastructure CloudFormation stack
 #     Type: String
 #     Default: FinanceStream360
 
+Parameters:
+  S3Bucket:
+    Type: String
+    Description: S3 Bucket Name
+  FinnhubKey:
+    Type: String
+    Description: Finnhub API Key
+
 Resources:
 # Lambda Function (Finnhub Connection)
+  WebSocketLayer:
+      Type: AWS::Lambda::LayerVersion
+      Properties:
+        LayerName: WebSocketLayer
+        Description: My websocket Layer
+        Content:
+          S3Bucket: !Ref S3Bucket
+          S3Key: websocket_layer.zip
+        CompatibleRuntimes:
+          - python3.13
   FinnhubConnFunction:
     Type: AWS::Lambda::Function
     Properties:
-      Code: lambda.zip
+      Code:
+        S3Bucket: !Ref S3Bucket
+        S3Key: finnhub_lambda.zip
       Description: AWS Lambda Function utilising Finnhub websocket to feed Kinesis data stream
       Environment:
         Variables:
           REGION_NAME: !Ref AWS::Region
           KDS_NAME: !Ref FinnhubStream
+          FINNHUB_KEY: !Ref FinnhubKey
       FunctionName: finnhub-connection-lambda
       Handler: finnhub_conn.lambda_handler
+      Layers:
+          - !Ref WebSocketLayer
       MemorySize: 128
       Runtime: python3.13
       Timeout: 10
@@ -34,19 +57,6 @@ Resources:
       # Events:
         # implement trigger
       Role: !GetAtt FinConnFuncRole.Arn
-  WebSocketLayer:
-    Type: AWS::Lambda::LayerVersion
-    Properties:
-      LayerName: WebSocketLayer
-      Description: My websocket Layer
-      Content:
-        S3Bucket: fin360-bucket-ss25
-        S3Key: websocket_layer.zip
-      CompatibleRuntimes:
-        - python3.9
-        - python3.10
-        - python3.11
-        - python3.13
 # IAM Role for Lambda Function
   FinConnFuncRole:
       Type: AWS::IAM::Role
